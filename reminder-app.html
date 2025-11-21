@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Never forget important tasks again with Reminder App">
+    <meta name="theme-color" content="#2a5298">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Reminders">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%232a5298' width='512' height='512' rx='115'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='280' fill='white'%3E🔔%3C/text%3E%3C/svg%3E">
+    <title>Reminder App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .app-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .app-header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .app-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .date-time-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-add:active {
+            transform: scale(0.98);
+        }
+
+        .reminders-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .reminder-count {
+            background: #2a5298;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .reminder-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #2a5298;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .reminder-item.completed {
+            opacity: 0.6;
+            border-left-color: #28a745;
+        }
+
+        .reminder-item.editing {
+            border-left-color: #007bff;
+            background: #e7f3ff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+        }
+
+        .reminder-item.completed .reminder-title {
+            text-decoration: line-through;
+        }
+
+        .reminder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .reminder-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+            flex: 1;
+        }
+
+        .reminder-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .reminder-datetime {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .reminder-datetime span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .reminder-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-complete {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            display: none;
+            animation: slideInRight 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        .notification.success {
+            border-left: 4px solid #28a745;
+        }
+
+        .notification.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        .alarm-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.4);
+            display: none;
+            z-index: 2000;
+            text-align: center;
+            min-width: 300px;
+            animation: pulse 0.5s ease infinite alternate;
+        }
+
+        @keyframes pulse {
+            from {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1.02);
+            }
+        }
+
+        .alarm-popup.show {
+            display: block;
+        }
+
+        .alarm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 1999;
+        }
+
+        .alarm-overlay.show {
+            display: block;
+        }
+
+        .alarm-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: ring 0.5s ease infinite;
+        }
+
+        @keyframes ring {
+            0%, 100% { transform: rotate(-15deg); }
+            50% { transform: rotate(15deg); }
+        }
+
+        .alarm-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .alarm-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .alarm-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-alarm {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-stop {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-snooze {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+            padding: 15px 20px;
+            z-index: 1000;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .install-banner .install-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .install-banner .install-icon {
+            font-size: 2.5rem;
+        }
+
+        .install-banner .install-text strong {
+            display: block;
+            color: #333;
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .install-banner .install-text p {
+            color: #666;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .install-banner .install-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-install {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-dismiss {
+            padding: 12px 20px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        @media (max-width: 480px) {
+            .date-time-row {
+                grid-template-columns: 1fr;
+            }
+
+            .app-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .reminder-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .alarm-popup {
+                min-width: 90%;
+                padding: 25px 20px;
+            }
+
+            .alarm-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-alarm {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="app-header">
+            <h1>📌 Reminder App</h1>
+            <p>Never forget important tasks again</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="reminderTitle">Title</label>
+                <input type="text" id="reminderTitle" placeholder="Enter reminder title">
+            </div>
+
+            <div class="input-group">
+                <label for="reminderDescription">Description (Optional)</label>
+                <textarea id="reminderDescription" placeholder="Add more details..."></textarea>
+            </div>
+
+            <div class="date-time-row">
+                <div class="input-group">
+                    <label for="reminderDate">Date</label>
+                    <input type="date" id="reminderDate">
+                </div>
+                <div class="input-group">
+                    <label for="reminderTime">Time</label>
+                    <input type="time" id="reminderTime">
+                </div>
+            </div>
+
+            <button class="btn-add" onclick="addReminder()" id="submitBtn">+ Add Reminder</button>
+            <button class="btn-add" onclick="cancelEdit()" id="cancelBtn" style="display: none; background: #6c757d; margin-top: 10px;">Cancel Edit</button>
+        </div>
+
+        <div class="reminders-section">
+            <div class="section-header">
+                <h2>My Reminders</h2>
+                <span class="reminder-count" id="reminderCount">0</span>
+            </div>
+            <div id="remindersList"></div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <span id="notificationMessage"></span>
+    </div>
+
+    <div class="alarm-overlay" id="alarmOverlay"></div>
+    <div class="alarm-popup" id="alarmPopup">
+        <div class="alarm-icon">🔔</div>
+        <div class="alarm-title" id="alarmTitle">Reminder Alert!</div>
+        <div class="alarm-description" id="alarmDescription"></div>
+        <div class="alarm-buttons">
+            <button class="btn-alarm btn-stop" onclick="stopAlarm()">Stop Alarm</button>
+            <button class="btn-alarm btn-snooze" onclick="snoozeAlarm()">Snooze 5 min</button>
+        </div>
+    </div>
+
+    <!-- Install Prompt Banner -->
+    <div class="install-banner" id="installBanner" style="display: none;">
+        <div class="install-content">
+            <div class="install-icon">📱</div>
+            <div class="install-text">
+                <strong>Install Reminder App</strong>
+                <p>Add to home screen for quick access</p>
+            </div>
+        </div>
+        <div class="install-buttons">
+            <button class="btn-install" id="installButton">Install</button>
+            <button class="btn-dismiss" id="dismissButton">✕</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize reminders from localStorage
+        let reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+        let alarmAudio = null;
+        let currentAlarmReminder = null;
+        let editingReminderId = null;
+
+        // Create alarm sound using Web Audio API
+        function createAlarmSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800; // Frequency in Hz
+            oscillator.type = 'sine'; // Sine wave for smooth sound
+
+            // Create beeping pattern
+            const beepDuration = 0.3;
+            const pauseDuration = 0.3;
+            let currentTime = audioContext.currentTime;
+
+            for (let i = 0; i < 10; i++) {
+                gainNode.gain.setValueAtTime(0.3, currentTime);
+                gainNode.gain.linearRampToValueAtTime(0, currentTime + beepDuration);
+                currentTime += beepDuration + pauseDuration;
+            }
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(currentTime);
+
+            return { audioContext, oscillator };
+        }
+
+        // Play alarm sound continuously
+        function playAlarmSound() {
+            if (alarmAudio) {
+                try {
+                    alarmAudio.audioContext.close();
+                } catch (e) {
+                    console.log('Error closing previous audio context');
+                }
+            }
+            
+            function playBeep() {
+                alarmAudio = createAlarmSound();
+                // Replay after 6 seconds
+                setTimeout(() => {
+                    if (currentAlarmReminder) {
+                        playBeep();
+                    }
+                }, 6000);
+            }
+            
+            playBeep();
+        }
+
+        function stopAlarm() {
+            if (alarmAudio) {
+                try {
+                    alarmAudio.audioContext.close();
+                } catch (e) {
+                    console.log('Error closing audio context');
+                }
+                alarmAudio = null;
+            }
+            
+            document.getElementById('alarmPopup').classList.remove('show');
+            document.getElementById('alarmOverlay').classList.remove('show');
+            
+            if (currentAlarmReminder) {
+                currentAlarmReminder.notified = true;
+                saveReminders();
+                currentAlarmReminder = null;
+            }
+        }
+
+        function snoozeAlarm() {
+            stopAlarm();
+            
+            if (currentAlarmReminder) {
+                // Add 5 minutes to the reminder time
+                const reminderTime = new Date(currentAlarmReminder.date + ' ' + currentAlarmReminder.time);
+                reminderTime.setMinutes(reminderTime.getMinutes() + 5);
+                
+                currentAlarmReminder.date = reminderTime.toISOString().split('T')[0];
+                currentAlarmReminder.time = reminderTime.toTimeString().slice(0, 5);
+                currentAlarmReminder.notified = false;
+                
+                saveReminders();
+                displayReminders();
+                showNotification('Reminder snoozed for 5 minutes', 'success');
+            }
+        }
+
+        function showAlarmPopup(reminder) {
+            currentAlarmReminder = reminder;
+            
+            document.getElementById('alarmTitle').textContent = reminder.title;
+            document.getElementById('alarmDescription').textContent = 
+                reminder.description || 'Time for your scheduled reminder!';
+            
+            document.getElementById('alarmPopup').classList.add('show');
+            document.getElementById('alarmOverlay').classList.add('show');
+            
+            // Play alarm sound
+            playAlarmSound();
+            
+            // Vibrate if supported
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
+        }
+
+        // Set minimum date to today
+        document.getElementById('reminderDate').min = new Date().toISOString().split('T')[0];
+
+        // Add event delegation for dynamically created buttons
+        document.addEventListener('click', function(e) {
+            // Handle delete button clicks
+            if (e.target.classList.contains('btn-delete') || e.target.closest('.btn-delete')) {
+                const button = e.target.classList.contains('btn-delete') ? e.target : e.target.closest('.btn-delete');
+                const reminderId = parseInt(button.getAttribute('data-id'));
+                if (reminderId) {
+                    deleteReminder(reminderId);
+                }
+            }
+            
+            // Handle complete button clicks
+            if (e.target.classList.contains('btn-complete') || e.target.closest('.btn-complete')) {
+                const button = e.target.classList.contains('btn-complete') ? e.target : e.target.closest('.btn-complete');
+                const reminderId = parseInt(button.getAttribute('data-id'));
+                if (reminderId) {
+                    toggleComplete(reminderId);
+                }
+            }
+            
+            // Handle edit button clicks
+            if (e.target.classList.contains('btn-edit') || e.target.closest('.btn-edit')) {
+                const button = e.target.classList.contains('btn-edit') ? e.target : e.target.closest('.btn-edit');
+                const reminderId = parseInt(button.getAttribute('data-id'));
+                if (reminderId) {
+                    editReminder(reminderId);
+                }
+            }
+        });
+
+        // Load reminders on page load
+        window.onload = function() {
+            displayReminders();
+            checkReminders();
+            // Check reminders every minute
+            setInterval(checkReminders, 60000);
+        };
+
+        function addReminder() {
+            const title = document.getElementById('reminderTitle').value.trim();
+            const description = document.getElementById('reminderDescription').value.trim();
+            const date = document.getElementById('reminderDate').value;
+            const time = document.getElementById('reminderTime').value;
+
+            if (!title) {
+                showNotification('Please enter a reminder title', 'error');
+                return;
+            }
+
+            if (!date) {
+                showNotification('Please select a date', 'error');
+                return;
+            }
+
+            if (!time) {
+                showNotification('Please select a time', 'error');
+                return;
+            }
+
+            if (editingReminderId) {
+                // Update existing reminder
+                const reminder = reminders.find(r => r.id === editingReminderId);
+                if (reminder) {
+                    reminder.title = title;
+                    reminder.description = description;
+                    reminder.date = date;
+                    reminder.time = time;
+                    reminder.notified = false; // Reset notification status
+                    
+                    saveReminders();
+                    displayReminders();
+                    clearInputs();
+                    exitEditMode();
+                    showNotification('Reminder updated successfully!', 'success');
+                }
+            } else {
+                // Add new reminder
+                const reminder = {
+                    id: Date.now(),
+                    title: title,
+                    description: description,
+                    date: date,
+                    time: time,
+                    completed: false,
+                    notified: false,
+                    createdAt: new Date().toISOString()
+                };
+
+                reminders.push(reminder);
+                saveReminders();
+                displayReminders();
+                clearInputs();
+                showNotification('Reminder added successfully!', 'success');
+            }
+        }
+
+        function editReminder(id) {
+            const reminder = reminders.find(r => r.id === id);
+            if (!reminder) return;
+
+            // Populate form with reminder data
+            document.getElementById('reminderTitle').value = reminder.title;
+            document.getElementById('reminderDescription').value = reminder.description || '';
+            document.getElementById('reminderDate').value = reminder.date;
+            document.getElementById('reminderTime').value = reminder.time;
+
+            // Switch to edit mode
+            editingReminderId = id;
+            document.getElementById('submitBtn').textContent = '✓ Update Reminder';
+            document.getElementById('submitBtn').style.background = '#28a745';
+            document.getElementById('cancelBtn').style.display = 'block';
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            showNotification('Editing reminder - Update when ready', 'success');
+        }
+
+        function cancelEdit() {
+            exitEditMode();
+            clearInputs();
+            showNotification('Edit cancelled', 'success');
+        }
+
+        function exitEditMode() {
+            editingReminderId = null;
+            document.getElementById('submitBtn').textContent = '+ Add Reminder';
+            document.getElementById('submitBtn').style.background = 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)';
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+
+        function displayReminders() {
+            const remindersList = document.getElementById('remindersList');
+            const reminderCount = document.getElementById('reminderCount');
+
+            if (reminders.length === 0) {
+                remindersList.innerHTML = `
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <p>No reminders yet. Add your first reminder above!</p>
+                    </div>
+                `;
+                reminderCount.textContent = '0';
+                return;
+            }
+
+            // Sort reminders: incomplete first, then by date/time
+            const sortedReminders = [...reminders].sort((a, b) => {
+                if (a.completed !== b.completed) {
+                    return a.completed ? 1 : -1;
+                }
+                return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
+            });
+
+            remindersList.innerHTML = sortedReminders.map(reminder => {
+                const dateObj = new Date(reminder.date);
+                const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+
+                const isEditing = editingReminderId === reminder.id;
+
+                return `
+                    <div class="reminder-item ${reminder.completed ? 'completed' : ''} ${isEditing ? 'editing' : ''}">
+                        <div class="reminder-header">
+                            <div class="reminder-title">${reminder.title}${isEditing ? ' (Editing...)' : ''}</div>
+                        </div>
+                        ${reminder.description ? `<div class="reminder-description">${reminder.description}</div>` : ''}
+                        <div class="reminder-datetime">
+                            <span>📅 ${formattedDate}</span>
+                            <span>🕐 ${formatTime(reminder.time)}</span>
+                        </div>
+                        <div class="reminder-actions">
+                            ${!reminder.completed ? `
+                                <button class="btn btn-complete" data-id="${reminder.id}">
+                                    ✓ Complete
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-edit" data-id="${reminder.id}">
+                                ✏️ Edit
+                            </button>
+                            <button class="btn btn-delete" data-id="${reminder.id}">
+                                🗑 Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            reminderCount.textContent = reminders.filter(r => !r.completed).length;
+        }
+
+        function formatTime(time) {
+            const [hours, minutes] = time.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const formattedHour = hour % 12 || 12;
+            return `${formattedHour}:${minutes} ${ampm}`;
+        }
+
+        function toggleComplete(id) {
+            const reminder = reminders.find(r => r.id === id);
+            if (reminder) {
+                reminder.completed = !reminder.completed;
+                
+                // Exit edit mode if we're editing this reminder
+                if (editingReminderId === id) {
+                    exitEditMode();
+                    clearInputs();
+                }
+                
+                saveReminders();
+                displayReminders();
+                showNotification('Reminder marked as complete!', 'success');
+            }
+        }
+
+        function deleteReminder(id) {
+            const reminder = reminders.find(r => r.id === id);
+            if (!reminder) {
+                showNotification('Reminder not found', 'error');
+                return;
+            }
+
+            const confirmDelete = confirm(`Are you sure you want to delete "${reminder.title}"?`);
+            
+            if (confirmDelete) {
+                // Exit edit mode if we're editing this reminder
+                if (editingReminderId === id) {
+                    exitEditMode();
+                    clearInputs();
+                }
+                
+                // Filter out the deleted reminder
+                const initialLength = reminders.length;
+                reminders = reminders.filter(r => r.id !== id);
+                
+                if (reminders.length < initialLength) {
+                    saveReminders();
+                    displayReminders();
+                    showNotification('Reminder deleted successfully', 'success');
+                } else {
+                    showNotification('Failed to delete reminder', 'error');
+                }
+            }
+        }
+
+        function checkReminders() {
+            const now = new Date();
+
+            reminders.forEach(reminder => {
+                if (!reminder.completed && !reminder.notified) {
+                    const reminderDateTime = new Date(reminder.date + ' ' + reminder.time);
+                    const timeDiff = reminderDateTime - now;
+
+                    // Notify if reminder time has passed or is within 1 minute
+                    if (timeDiff <= 60000 && timeDiff >= -60000) {
+                        showAlarmPopup(reminder);
+                        
+                        // Browser notification (if permission granted)
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            new Notification('Reminder Alert! 🔔', {
+                                body: reminder.title,
+                                icon: '📌',
+                                requireInteraction: true
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        function saveReminders() {
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+        }
+
+        function clearInputs() {
+            document.getElementById('reminderTitle').value = '';
+            document.getElementById('reminderDescription').value = '';
+            document.getElementById('reminderDate').value = '';
+            document.getElementById('reminderTime').value = '';
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            
+            notificationMessage.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Request notification permission on page load
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // PWA Installation
+        let deferredPrompt;
+        const installBanner = document.getElementById('installBanner');
+        const installButton = document.getElementById('installButton');
+        const dismissButton = document.getElementById('dismissButton');
+
+        // Check if already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('App is already installed');
+        } else {
+            // Show install banner after 3 seconds if not dismissed before
+            setTimeout(() => {
+                const dismissed = localStorage.getItem('installBannerDismissed');
+                if (!dismissed && deferredPrompt) {
+                    installBanner.style.display = 'block';
+                }
+            }, 3000);
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            
+            // Check if user hasn't dismissed it before
+            const dismissed = localStorage.getItem('installBannerDismissed');
+            if (!dismissed) {
+                setTimeout(() => {
+                    installBanner.style.display = 'block';
+                }, 3000);
+            }
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                return;
+            }
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+                showNotification('App installed successfully! 🎉', 'success');
+            } else {
+                console.log('User dismissed the install prompt');
+            }
+            
+            // Hide the banner
+            installBanner.style.display = 'none';
+            deferredPrompt = null;
+        });
+
+        dismissButton.addEventListener('click', () => {
+            installBanner.style.display = 'none';
+            localStorage.setItem('installBannerDismissed', 'true');
+        });
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Handle app installed event
+        window.addEventListener('appinstalled', () => {
+            console.log('App was installed successfully');
+            installBanner.style.display = 'none';
+            showNotification('Reminder App installed! Check your home screen 📱', 'success');
+        });
+    </script>
+</body>
+</html>
